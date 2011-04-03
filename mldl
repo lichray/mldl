@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+
+#
+# mldl - creates a link to submit to MLdonkey with curl
+# 
+# Copyright (c) 2011 Zhihao Yuan.
+# All rights reserved.
+# 
+# This file is distributed under the 2-clause BSD License.
+#
+
+use URI::Escape;
+use Getopt::Std;
+use File::Basename;
+use Cwd 'abs_path';
+use File::Temp;
+
+use strict;
+use warnings;
+
+sub dieopt (;$) {
+	print STDERR "$0: $_[0]\n" if (@_);
+	print STDERR "Try `$0 -h' for more information.\n";
+	exit 2;
+}
+
+$0 = basename($0);
+my %opts = ();
+my $ml_cmd = 'dllink';
+my $ml_arg = '';
+if (!getopts('h:u:f:qn', \%opts)) {
+	dieopt "missing user name" if (exists $opts{u});
+	dieopt "missing file name" if (exists $opts{f});
+	dieopt;
+}
+
+if (exists $opts{h}) {
+	if (!$opts{h}) {
+		print <<EOF;
+Usage:   $0 [OPTION]... URI
+         $0 [OPTION]... -f FILE|-
+Options:
+ -h HOST[:PORT]  MLdonkey host (localhost:4080)
+ -u USER[:PASS]  Set server user and password
+ -n              Read .netrc for user name and password
+ -f FILE|-       Download all the links in the file/stdin
+ -q              Quiet mode
+ -h              Show help text
+EOF
+		exit 0;
+	}
+} else {
+	$opts{h} = 'localhost:4080';
+}
+
+if ($opts{f}) {
+	$ml_cmd = 'dllinks';
+	if ($opts{f} eq '-') {
+		# expend the scope with *our*
+		our $_fh = File::Temp->new();
+		my %seen = ();
+		for (grep { ! $seen{$_} ++ } <STDIN>) { print $_fh $_ }
+		$opts{f} = $_fh->filename;
+	}
+	$ml_arg = uri_escape(abs_path $opts{f});
+} elsif (!@ARGV) {
+	dieopt "missing URI";
+} else {
+	$ml_arg = uri_escape($ARGV[0]);
+}
+
+my $link = sprintf("http://%s/submit?q=%s+%s", 
+	$opts{h}, $ml_cmd, $ml_arg);
+my @curl = qw/curl -4 -s/;
+push(@curl, '-u', $opts{u} || 'admin') if (!$opts{n});
+push(@curl, '--netrc-optional') if ($opts{n});
+push(@curl, $link);
+
+open(R, '-|', @curl);
+if (!$opts{q}) {
+	# sump the lines start with '<div' or '<p'
+	my $s = join '', grep(/^<div|<p/, <R>);
+	$s =~ s|(</[^<]+>)+|\n|g;
+	$s =~ s|<[^<]+>||g;
+	print $s;
+}
