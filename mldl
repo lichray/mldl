@@ -29,13 +29,7 @@ my %opts = ();
 my $ml_cmd = 'dllink';
 my $ml_arg = '';
 if (!getopts('h:u:f:qn', \%opts)) {
-	dieopt "missing user name" if (exists $opts{u});
-	dieopt "missing file name" if (exists $opts{f});
-	dieopt;
-}
-
-if (exists $opts{h}) {
-	if (!$opts{h}) {
+	if (exists $opts{h}) {
 		print <<EOF;
 Usage:   $0 [OPTION]... URI
          $0 [OPTION]... -f FILE|-
@@ -49,7 +43,12 @@ Options:
 EOF
 		exit 0;
 	}
-} else {
+	dieopt "missing user name" if (exists $opts{u});
+	dieopt "missing file name" if (exists $opts{f});
+	dieopt;
+}
+
+if (!$opts{h}) {
 	$opts{h} = 'localhost:4080';
 }
 
