@@ -52,7 +52,7 @@ Dowload all ed2k links within a web page. Use .netrc:
 
   wget -O- 'http://some/legal/site.html' \
 	  | grep -o 'ed2k://.*|/' \
-	  | mldllink -f - -n
+	  | mldl -f - -n
 
 SEE ALSO
 =========
