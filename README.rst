@@ -50,9 +50,11 @@ Dowload all ed2k links within a web page. Use .netrc:
 
  ::
 
-  wget -O- 'http://some/legal/site.html' \
-	  | grep -o 'ed2k://.*|/' \
+  curl -s 'http://some/legal/site.html' \
+	  | grep -o 'ed2k://|file|.*|/' \
 	  | mldl -f - -n
+
+`wget -O-` can be used to replace the curl command.
 
 SEE ALSO
 =========

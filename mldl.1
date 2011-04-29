@@ -71,13 +71,15 @@ Dowload all ed2k links within a web page. Use .netrc:
 .sp
 .nf
 .ft C
-wget \-O\- \(aqhttp://some/legal/site.html\(aq \e
-        | grep \-o \(aqed2k://.*|/\(aq \e
+curl \-s \(aqhttp://some/legal/site.html\(aq \e
+        | grep \-o \(aqed2k://|file|.*|/\(aq \e
         | mldl \-f \- \-n
 .ft P
 .fi
 .UNINDENT
 .UNINDENT
+.sp
+\fIwget \-O\-\fP can be used to replace the curl command.
 .SH SEE ALSO
 .sp
 curl(1), wget(1)
